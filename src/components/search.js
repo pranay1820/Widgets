@@ -4,6 +4,18 @@ import React, { useEffect, useState } from "react";
 const Search = ()=>{
     const [term,setTerm] = useState("");
     const [result,setResult]=useState([]);
+    const [deBouncedTerm,setDeBouncedTerm]=useState(term);
+
+    useEffect(()=>{
+        const timeoutId=setTimeout(()=>{
+            setDeBouncedTerm(term);
+        },1000);
+
+        return ()=>{
+            clearTimeout(timeoutId);
+        };
+    },[term])
+
     useEffect(()=>{
         const search = async ()=>{
             const {data} = await axios.get('https://en.wikipedia.org/w/api.php',{
@@ -12,23 +24,16 @@ const Search = ()=>{
                     list:'search',
                     format:'json',
                     origin:'*',
-                    srsearch:term
+                    srsearch:deBouncedTerm
                 }
             })
 
             setResult(data.query.search);
         }
-
-        const timeoutId=setTimeout(()=>{
-            if(term)
-                search();
-        },500);
-
-        return ()=>{
-            clearTimeout(timeoutId);
-        };
+        if(deBouncedTerm)
+        search();
         
-    },[term])
+    },[deBouncedTerm])
 
 
     const renderedList=result.map((result)=>{
